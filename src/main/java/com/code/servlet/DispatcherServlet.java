@@ -169,8 +169,6 @@ public class DispatcherServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String requestURI = req.getRequestURI();
 
-//        String context = req.getContextPath();
-//        requestURI = requestURI.replaceAll(context,"");
         Method method = (Method)pathMap.get(requestURI);
         String name = req.getParameter("name");
         Integer age = Integer.parseInt(req.getParameter("age"));

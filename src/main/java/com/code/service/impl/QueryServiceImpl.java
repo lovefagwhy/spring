@@ -11,6 +11,6 @@ import com.code.service.QueryService;
 public class QueryServiceImpl implements QueryService {
     @Override
     public String queryMethod(String name, int age) {
-        return "{'name':"+name+";'age':"+age+"}";
+        return "{'name':" + name + ";'age':" + age + "}";
     }
 }

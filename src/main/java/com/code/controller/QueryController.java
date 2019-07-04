@@ -18,8 +18,8 @@ public class QueryController {
     private QueryService queryService;
 
     @CodeRequestMapping("/query")
-    public String queryParam(String Name, int age){
+    public String queryParam(String Name, int age) {
 
-        return queryService.queryMethod(Name,age);
+        return queryService.queryMethod(Name, age);
     }
 }

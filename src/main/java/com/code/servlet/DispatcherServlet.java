@@ -26,11 +26,13 @@ import java.util.*;
  */
 public class DispatcherServlet extends HttpServlet {
     private List<String> className = new ArrayList<>();
-    private Map<String,Object> beanMap = new HashMap<>();
-    private Map<String,Object> pathMap = new HashMap<>();
-    public DispatcherServlet(){
+    private Map<String, Object> beanMap = new HashMap<>();
+    private Map<String, Object> pathMap = new HashMap<>();
+
+    public DispatcherServlet() {
         super();
     }
+
     @Override
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
@@ -45,20 +47,20 @@ public class DispatcherServlet extends HttpServlet {
     }
 
     private void doMapping() {
-        for(Map.Entry<String, Object> entrySet : beanMap.entrySet()){
+        for (Map.Entry<String, Object> entrySet : beanMap.entrySet()) {
             Object bean = entrySet.getValue();
             Class<?> aClass = bean.getClass();
-            if(aClass.isAnnotationPresent(CodeController.class)){
+            if (aClass.isAnnotationPresent(CodeController.class)) {
                 CodeRequestMapping requestMapping = aClass.getAnnotation(CodeRequestMapping.class);
                 String mappingValue = requestMapping.value();
                 Method[] declaredMethods = aClass.getMethods();
                 for (Method declaredMethod : declaredMethods) {
-                    if(declaredMethod.isAnnotationPresent(CodeRequestMapping.class)){
+                    if (declaredMethod.isAnnotationPresent(CodeRequestMapping.class)) {
                         CodeRequestMapping codeRequestMapping = declaredMethod.getAnnotation(CodeRequestMapping.class);
                         String name = codeRequestMapping.value();
-                        mappingValue +=name;
+                        mappingValue += name;
                         try {
-                            pathMap.put(mappingValue,declaredMethod);
+                            pathMap.put(mappingValue, declaredMethod);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -71,29 +73,29 @@ public class DispatcherServlet extends HttpServlet {
     }
 
     private void doAutoWird() {
-        for(Map.Entry<String, Object> entrySet : beanMap.entrySet()){
+        for (Map.Entry<String, Object> entrySet : beanMap.entrySet()) {
             Object bean = entrySet.getValue();
             Class<?> aClass = bean.getClass();
-            if(aClass.isAnnotationPresent(CodeController.class)){
+            if (aClass.isAnnotationPresent(CodeController.class)) {
                 Field[] declaredFields = aClass.getDeclaredFields();
                 for (Field declaredField : declaredFields) {
-                    if(declaredField.isAnnotationPresent(CodeAutowird.class)){
+                    if (declaredField.isAnnotationPresent(CodeAutowird.class)) {
                         CodeAutowird codeAutowird = declaredField.getAnnotation(CodeAutowird.class);
                         String name = codeAutowird.value();
                         Object o = beanMap.get(name);
                         String clasname = declaredField.getType().getName();
                         declaredField.setAccessible(true);
-                        if(null !=o){
+                        if (null != o) {
                             try {
-                                declaredField.set(bean,o);
+                                declaredField.set(bean, o);
                             } catch (IllegalAccessException e) {
                                 e.printStackTrace();
                             }
 
-                        }else if(null != beanMap.get(clasname)){
+                        } else if (null != beanMap.get(clasname)) {
                             Object o1 = beanMap.get(clasname);
                             try {
-                                declaredField.set(bean,o1);
+                                declaredField.set(bean, o1);
                             } catch (IllegalAccessException e) {
                                 e.printStackTrace();
                             }
@@ -109,34 +111,34 @@ public class DispatcherServlet extends HttpServlet {
     private void doCreateBean() {
         try {
             for (String clazzName : className) {
-                clazzName = clazzName.replaceAll(".class","");
+                clazzName = clazzName.replaceAll(".class", "");
                 Class<?> aClass = Class.forName(clazzName);
-                if(aClass.isAnnotationPresent(CodeController.class)){
+                if (aClass.isAnnotationPresent(CodeController.class)) {
                     CodeController annotation = aClass.getAnnotation(CodeController.class);
                     String clasName = annotation.value();
                     Object o = aClass.newInstance();
-                    if("".equals(clasName)){
+                    if ("".equals(clasName)) {
                         clasName = o.getClass().getName();
                     }
-                    beanMap.put(clasName,o);
-                }else if(aClass.isAnnotationPresent(CodeService.class)){
+                    beanMap.put(clasName, o);
+                } else if (aClass.isAnnotationPresent(CodeService.class)) {
                     CodeService annotation = aClass.getAnnotation(CodeService.class);
                     String clasName = annotation.value();
                     Object o = aClass.newInstance();
-                    if(!"".equals(clasName)){
-                        beanMap.put(clasName,o);
+                    if (!"".equals(clasName)) {
+                        beanMap.put(clasName, o);
 
                     }
                     String clasName1 = o.getClass().getName();
-                    beanMap.put(clasName1,o);
+                    beanMap.put(clasName1, o);
                 }
             }
 
-        }catch (ClassNotFoundException e) {
+        } catch (ClassNotFoundException e) {
             e.printStackTrace();
-        }catch (InstantiationException e){
+        } catch (InstantiationException e) {
             e.printStackTrace();
-        }catch (IllegalAccessException e){
+        } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
     }
@@ -144,16 +146,16 @@ public class DispatcherServlet extends HttpServlet {
     private void doScanPackage(String packPath) {
         //获取包的具体物理地址
         URL url = this.getClass().getClassLoader().getResource(
-                "/"+packPath.replaceAll("[.]","/"));
+                "/" + packPath.replaceAll("[.]", "/"));
         String file = url.getFile();
         File packFile = new File(file);
-        if(packFile.exists()){
+        if (packFile.exists()) {
             File[] files = packFile.listFiles();
             for (File pFile : files) {
-                if(pFile.isDirectory()){
-                    doScanPackage(packPath+"."+pFile.getName());
-                }else{
-                    className.add(packPath+"."+pFile.getName());
+                if (pFile.isDirectory()) {
+                    doScanPackage(packPath + "." + pFile.getName());
+                } else {
+                    className.add(packPath + "." + pFile.getName());
                 }
 
             }
@@ -169,7 +171,9 @@ public class DispatcherServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String requestURI = req.getRequestURI();
 
-        Method method = (Method)pathMap.get(requestURI);
+//        String context = req.getContextPath();
+//        requestURI = requestURI.replaceAll(context,"");
+        Method method = (Method) pathMap.get(requestURI);
         String name = req.getParameter("name");
         Integer age = Integer.parseInt(req.getParameter("age"));
         try {
